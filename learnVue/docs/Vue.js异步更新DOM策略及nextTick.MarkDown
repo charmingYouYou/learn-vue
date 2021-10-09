@@ -13,7 +13,7 @@
 ```
 
 ```javascript
-export default {
+export default =
     data () {
         return {
             test: 'begin'

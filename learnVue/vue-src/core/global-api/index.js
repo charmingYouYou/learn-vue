@@ -49,6 +49,12 @@ export function initGlobalAPI(Vue: GlobalAPI) {
   Vue.delete = del
   Vue.nextTick = nextTick
 
+  /**
+   * 'component', // 组件
+   * 'directive', // 指令
+   * 'filter' // 过滤
+   * 初始化三个options
+   */
   Vue.options = Object.create(null)
   ASSET_TYPES.forEach(type => {
     Vue.options[type + 's'] = Object.create(null)
@@ -59,9 +65,12 @@ export function initGlobalAPI(Vue: GlobalAPI) {
   /*_base被用来标识基本构造函数（也就是Vue），以便在多场景下添加组件扩展*/
   Vue.options._base = Vue
 
+  // 注册全局keep-alive组件
   extend(Vue.options.components, builtInComponents)
 
+  // 初始化Vue.use()
   initUse(Vue)
+  // 初始化Vue.mixin
   initMixin(Vue)
   initExtend(Vue)
   initAssetRegisters(Vue)

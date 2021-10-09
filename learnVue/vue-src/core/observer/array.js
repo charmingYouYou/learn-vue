@@ -30,6 +30,7 @@ export const arrayMethods = Object.create(arrayProto)
   def(arrayMethods, method, function mutator () {
     // avoid leaking arguments:
     // http://jsperf.com/closure-with-arguments
+    // 把伪数组转为数组
     let i = arguments.length
     const args = new Array(i)
     while (i--) {
@@ -41,6 +42,11 @@ export const arrayMethods = Object.create(arrayProto)
     /*数组新插入的元素需要重新进行observe才能响应式*/
     const ob = this.__ob__
     let inserted
+    /** 
+     * push 向后添加方法的args会成为数组的新元素
+     * unshift 向前添加方法的args会成为数组的新元素
+     * splice(index, count, add...) 第二个参数后的为新添加的数组元素
+     */
     switch (method) {
       case 'push':
         inserted = args

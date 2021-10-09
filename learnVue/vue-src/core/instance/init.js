@@ -35,6 +35,7 @@ export function initMixin (Vue: Class<Component>) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
+      // 初始化内部组件
       initInternalComponent(vm, options)
     } else {
       vm.$options = mergeOptions(

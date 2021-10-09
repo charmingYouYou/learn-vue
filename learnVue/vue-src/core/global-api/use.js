@@ -12,11 +12,13 @@ export function initUse (Vue: GlobalAPI) {
       return
     }
     // additional parameters
+    // 获取除plugin入参以外的所有参数为Array
     const args = toArray(arguments, 1)
     /*a*/
+    // 向前添加this
     args.unshift(this)
     if (typeof plugin.install === 'function') {
-      /*install执行插件安装*/
+      /*install执行插件安装 并将Vue返回*/
       plugin.install.apply(plugin, args)
     } else if (typeof plugin === 'function') {
       plugin.apply(null, args)

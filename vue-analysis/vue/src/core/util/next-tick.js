@@ -8,6 +8,7 @@ import { isIOS, isNative } from './env'
 const callbacks = []
 let pending = false
 
+// 清空Vue.nextTick & vm.$nextTick回调
 function flushCallbacks () {
   pending = false
   const copies = callbacks.slice(0)
@@ -25,6 +26,14 @@ function flushCallbacks () {
 // when state is changed right before repaint (e.g. #6813, out-in transitions).
 // Here we use microtask by default, but expose a way to force (macro) task when
 // needed (e.g. in event handlers attached by v-on).
+//这里我们有使用微任务和（宏）任务的异步延迟包装器。
+//在<2.4中，我们到处使用微任务，但在某些情况下
+//微任务的优先级太高，应该介于两者之间
+//连续事件（例如#4521、#6690）或甚至在相同事件的冒泡之间
+//事件。然而，在任何地方使用（宏）任务也有微妙的问题
+//当状态在重新绘制之前发生更改时（例如#6813，在转换中输出）。
+//在这里，我们默认使用微任务，但在需要时公开一种强制（宏）任务的方法
+//需要（例如，在v-on连接的事件处理程序中）。
 let microTimerFunc
 let macroTimerFunc
 let useMacroTask = false
@@ -33,6 +42,10 @@ let useMacroTask = false
 // Technically setImmediate should be the ideal choice, but it's only available
 // in IE. The only polyfill that consistently queues the callback after all DOM
 // events triggered in the same loop is by using MessageChannel.
+//确定（宏）任务延迟执行。
+//从技术上讲，setImmediate应该是理想的选择，但它只能提供
+//在IE中，唯一一个始终在所有DOM之后对回调进行排队的多边形填充
+//在同一循环中触发的事件是通过使用MessageChannel触发的。
 /* istanbul ignore if */
 if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
   macroTimerFunc = () => {

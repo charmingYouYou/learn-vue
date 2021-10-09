@@ -46,16 +46,21 @@ if (process.env.NODE_ENV !== 'production') {
 
 /**
  * Helper that recursively merges two data objects together.
+ * 将两个数据对象递归合并在一起的帮助器。 
+ * 数据冲突时优先考虑from参数的数据\
+ * @example mixin {a: 1, b: 2} component {a: 2} 
  */
 function mergeData (to: Object, from: ?Object): Object {
   if (!from) return to
   let key, toVal, fromVal
   const keys = Object.keys(from)
   for (let i = 0; i < keys.length; i++) {
-    key = keys[i]
-    toVal = to[key]
-    fromVal = from[key]
-    if (!hasOwn(to, key)) {
+    key = keys[i] // a
+    toVal = to[key] // 1 
+    fromVal = from[key] // 2
+    if (!hasOwn(to, key)) { // true
+      // Vue.set 将数据变为Observer响应式数据
+      // 如果数据冲突, 将from数据响应式赋值到to上, 优先取from的值
       set(to, key, fromVal)
     } else if (isPlainObject(toVal) && isPlainObject(fromVal)) {
       mergeData(toVal, fromVal)
@@ -66,6 +71,10 @@ function mergeData (to: Object, from: ?Object): Object {
 
 /**
  * Data
+ */
+/**  
+ * mixin 合并data数据
+ * 返回一个函数, 在initData时调用
  */
 strats.data = function (
   parentVal: any,
@@ -110,6 +119,7 @@ strats.data = function (
         ? parentVal.call(vm)
         : undefined
       if (instanceData) {
+        // instanceData = mixin数据, defaultData 组件数据
         return mergeData(instanceData, defaultData)
       } else {
         return defaultData
@@ -134,6 +144,9 @@ function mergeHook (
     : parentVal
 }
 
+/** 
+ * 生命周期 合并为一个数组执行
+ */
 LIFECYCLE_HOOKS.forEach(hook => {
   strats[hook] = mergeHook
 })
@@ -152,6 +165,10 @@ function mergeAssets (parentVal: ?Object, childVal: ?Object): Object {
     : res
 }
 
+/** 
+ * 组件component, 指令directive, 过滤filter
+ * Object合并
+ */
 ASSET_TYPES.forEach(function (type) {
   strats[type + 's'] = mergeAssets
 })
@@ -161,6 +178,12 @@ ASSET_TYPES.forEach(function (type) {
  *
  * Watchers hashes should not overwrite one
  * another, so we merge them as arrays.
+ */
+/**
+ * 若有重复的watch key, 则合并为数组
+ * @param {*} parentVal 
+ * @param {*} childVal 
+ * @returns 
  */
 strats.watch = function (parentVal: ?Object, childVal: ?Object): ?Object {
   /* istanbul ignore if */
@@ -183,6 +206,9 @@ strats.watch = function (parentVal: ?Object, childVal: ?Object): ?Object {
 
 /**
  * Other object hashes.
+ */
+/**
+ * props, methods, computed 合并策略
  */
 strats.props =
 strats.methods =
@@ -211,6 +237,7 @@ const defaultStrat = function (parentVal: any, childVal: any): any {
 function checkComponents (options: Object) {
   for (const key in options.components) {
     const lower = key.toLowerCase()
+    // 检测是否为内置标签(slot, component)或是否为html保留标签
     if (isBuiltInTag(lower) || config.isReservedTag(lower)) {
       warn(
         'Do not use built-in or reserved HTML elements as component ' +
@@ -225,6 +252,9 @@ function checkComponents (options: Object) {
  * Object-based format.
  */
  /*确保所有props option序列化成正确的格式*/
+ /** 将options.props 的数组写法['test-a'] 统一成object写法
+  * test-a 转为驼峰式
+  */
 function normalizeProps (options: Object) {
   const props = options.props
   if (!props) return
@@ -247,6 +277,11 @@ function normalizeProps (options: Object) {
       val = props[key]
       /*将原本用-连接的字符串变成驼峰 aaa-bbb-ccc => aaaBbbCcc*/
       name = camelize(key)
+      /**
+       * 兼容props: {
+       *    test: String 写法
+       * }
+       */
       res[name] = isPlainObject(val)
         ? val
         : { type: val }
@@ -259,6 +294,9 @@ function normalizeProps (options: Object) {
  * Normalize raw function directives into object format.
  */
  /*将函数指令序列化后加入对象*/
+/**
+ * 兼容directives () {} 写法, 转换为Object写法
+ */
 function normalizeDirectives (options: Object) {
   const dirs = options.directives
   if (dirs) {
@@ -323,6 +361,10 @@ export function mergeOptions (
   }
   function mergeField (key) {
     /*strats里面存了options中每一个属性（el、props、watch等等）的合并方法，先取出*/
+    /**
+     * 获取starts优先获取自定义merge方法config.optionMergeStrategies
+     * 否则取vue自己默认的配置
+     */
     const strat = strats[key] || defaultStrat
     /*根据合并方法来合并两个option*/
     options[key] = strat(parent[key], child[key], vm, key)

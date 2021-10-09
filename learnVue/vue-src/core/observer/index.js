@@ -21,6 +21,9 @@ const arrayKeys = Object.getOwnPropertyNames(arrayMethods)
  * under a frozen data structure. Converting it would defeat the optimization.
  */
 /*默认情况下，当一个无效的属性被设置时，新的值也会被转换成无效的。不管怎样当传递props时，我们不需要进行强制转换*/
+/**
+ * 自己理解: 当一个obj被转为reactive可响应时, 那么当它作为props向子组件传递时, 是不需要再进行转换
+ */
 export const observerState = {
   shouldConvert: true,
   isSettingProps: false
@@ -141,6 +144,11 @@ export function observe(value: any, asRootData: ?boolean): Observer | void {
       这里的判断是为了确保value是单纯的对象，而不是函数或者是Regexp等情况。
       而且该对象在shouldConvert的时候才会进行Observer。这是一个标识位，避免重复对value进行Observer
     */
+    // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/isExtensible
+    // Object.isExtensible() 判断对象是否可扩展
+    /**
+     * 可转换的 && 不是ssr渲染 && 是数组或单纯Object && 对象可扩展 && 不是vue
+     */
     observerState.shouldConvert &&
     !isServerRendering() &&
     (Array.isArray(value) || isPlainObject(value)) &&
@@ -172,7 +180,7 @@ export function defineReactive(
   // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptor
   // getOwnPropertyDescriptor 获取属性描述符Object.defineProperty 的 options
   const property = Object.getOwnPropertyDescriptor(obj, key)
-  // 若属性不可被修改or删除 return
+  // configurable如果为 false，则任何尝试删除目标属性或修改属性以下特性（writable, configurable, enumerable）的行为将被无效化
   if (property && property.configurable === false) {
     return
   }
@@ -197,6 +205,7 @@ export function defineReactive(
           /*子对象进行依赖收集，其实就是将同一个watcher观察者实例放进了两个depend中，一个是正在本身闭包中的depend，另一个是子元素的depend*/
           childOb.dep.depend()
         }
+        // 递归数组内的所有元素进行依赖收集
         if (Array.isArray(value)) {
           /*是数组则需要对每一个成员都进行依赖收集，如果数组的成员还是数组，则递归。*/
           dependArray(value)
@@ -230,6 +239,7 @@ export function defineReactive(
 }
 
 /**
+ * Vue.set
  * Set a property on an object. Adds the new property and
  * triggers change notification if the property doesn't
  * already exist.
@@ -269,12 +279,14 @@ export function set(target: Array<any> | Object, key: any, val: any): any {
     return val
   }
   /*为对象defineProperty上在变化时通知的属性*/
+  // ob.value === target true
   defineReactive(ob.value, key, val)
   ob.dep.notify()
   return val
 }
 
 /**
+ * Vue.del
  * Delete a property and trigger change if necessary.
  */
 export function del(target: Array<any> | Object, key: any) {

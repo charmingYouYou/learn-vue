@@ -3,7 +3,7 @@
 import config from '../config'
 import { noop } from 'shared/util'
 
-// 如果为线上则不提是warn, tip
+// 如果为线上则不提示warn, tip
 export let warn = noop
 export let tip = noop
 export let formatComponentName = (null) // work around flow check

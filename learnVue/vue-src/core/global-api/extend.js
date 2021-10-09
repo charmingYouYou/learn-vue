@@ -24,6 +24,7 @@ export function initExtend (Vue: GlobalAPI) {
    使用基础 Vue 构造器，创建一个“子类”。
    其实就是扩展了基础构造器，形成了一个可复用的有指定选项功能的子构造器。
    参数是一个包含组件option的对象。  https://cn.vuejs.org/v2/api/#Vue-extend-options
+   Vue.extend的作用是创建一个继承自Vue类的子类
    */
   Vue.extend = function (extendOptions: Object): Function {
     extendOptions = extendOptions || {}
@@ -105,7 +106,7 @@ export function initExtend (Vue: GlobalAPI) {
     // later at instantiation we can check if Super's options have
     // been updated.
     /*保存一个父类的options，此后我们可以用来检测父类的options是否已经被更新*/
-    Sub.superOptions = Super.options，
+    Sub.superOptions = Super.options
     /*extendOptions存储起来*/
     Sub.extendOptions = extendOptions
     /*保存一份option，extend的作用是将Sub.options中的所有属性放入{}中*/

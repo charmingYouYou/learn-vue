@@ -84,8 +84,6 @@ map为{
 }
 存在expectsLowerCase参数的时候会将所有的参数转化成小写
  */
-}
-}
 export function makeMap (
   str: string,
   expectsLowerCase?: boolean
@@ -102,6 +100,7 @@ export function makeMap (
 
 /**
  * Check if a tag is a built-in tag.
+ * 检查标记是否为内置标记。
  */
 export const isBuiltInTag = makeMap('slot,component', true)
 

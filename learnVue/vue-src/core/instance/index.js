@@ -14,6 +14,7 @@ function Vue (options) {
   this._init(options)
 }
 
+// 通过Vue.prototype 扩展Vue的方法
 initMixin(Vue)
 stateMixin(Vue)
 eventsMixin(Vue)
